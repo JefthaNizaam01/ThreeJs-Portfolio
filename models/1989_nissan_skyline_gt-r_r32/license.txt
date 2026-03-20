@@ -1,0 +1,11 @@
+Model Information:
+* title:	1989 Nissan Skyline GT-R (R32)
+* source:	https://sketchfab.com/3d-models/1989-nissan-skyline-gt-r-r32-ba48a6529b8e47eeb43a6e19c227abfd
+* author:	Ddiaz Design (https://sketchfab.com/ddiaz-design)
+
+Model License:
+* license type:	CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)
+* requirements:	Author must be credited. No commercial use. Modified versions must have the same license.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "1989 Nissan Skyline GT-R (R32)" (https://sketchfab.com/3d-models/1989-nissan-skyline-gt-r-r32-ba48a6529b8e47eeb43a6e19c227abfd) by Ddiaz Design (https://sketchfab.com/ddiaz-design) licensed under CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)

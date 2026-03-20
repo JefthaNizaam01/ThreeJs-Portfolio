@@ -238,6 +238,61 @@ loader.load(
   undefined,
   (err) => console.error('Error loading RX-7:', err)
 );
+ // --- LOAD GT-R ---
+loader.load(
+  'models/1989_nissan_skyline_gt-r_r32/scene.gltf',   // adjust the path/filename to your main .gltf
+  (gltf) => {
+    const carModel = gltf.scene;
+
+    // Optional: center and scale the model
+    const box = new THREE.Box3().setFromObject(carModel);
+    const center = box.getCenter(new THREE.Vector3());
+    carModel.position.sub(center);
+    const size = box.getSize(new THREE.Vector3()).length();
+    const scaleFactor = 5.5 / size;  // adjust to match your scene scale
+    carModel.scale.setScalar(scaleFactor);
+    // model.rotation.y = Math.PI / 1;
+
+    // Position it somewhere (e.g., near the road)
+    const t = 0.23;  // choose a spot along your main road
+    const roadPos = curve.getPoint(t);
+    const tangent = curve.getTangent(t);
+    const perp = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+    const side = 1;      // 1 = left, -1 = right (depending on perp direction)
+    const distance = 5; // how far from road
+    const pos = roadPos.clone().addScaledVector(perp, side * distance);
+    pos.y = 0;           // ground level
+    carModel.position.copy(pos);
+// --- ADD EXTRA LIGHT FOR GT-R ---
+const carLight = new THREE.PointLight(0xffffff, 10, 50); // intensity 10, range 50
+carLight.position.copy(carModel.position);
+carLight.position.y += 2; // raise slightly above the car
+scene.add(carLight);
+
+// Optional: add a second light from the front to reduce harsh shadows
+const frontLight = new THREE.PointLight(0xffffff, 5, 30);
+frontLight.position.copy(carModel.position);
+frontLight.position.y += 1.5;
+frontLight.position.z += 3; // move forward relative to car's local orientation
+// Since we haven't rotated the light, this will be in world Z – better to use car's direction.
+// Simpler: just place it in front based on car's rotation:
+const carDir = new THREE.Vector3(0, 0, 1).applyQuaternion(carModel.quaternion);
+frontLight.position.copy(carModel.position.clone().add(carDir.multiplyScalar(3)));
+frontLight.position.y += 1.5;
+scene.add(frontLight);
+    // Optional: rotate the car to face the road or any direction
+    carModel.rotation.y = Math.PI / 0.75;
+
+    scene.add(carModel);
+
+    // If you want the car to be solid (collide with the player car), add to houses array
+    // houses.push(carModel);  // <-- uncomment if you want it as an obstacle
+
+    console.log('GT-R loaded');
+  },
+  undefined,
+  (err) => console.error('Error loading GT-R:', err)
+);
 
   // (Optional) If you also want to load the lantern/street props, add another loader here.
   // loader.load('models/street-props.glb', ...)
