@@ -5,6 +5,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 export function loadCustomModels(scene, curve, houses, breakableTrees) {
   const loader = new GLTFLoader();
 
+  
+
   // --- LOAD TOFU SHOP ---
   loader.load(
     'models/fujiwara_tofu_shop.glb',
@@ -80,16 +82,16 @@ export function loadCustomModels(scene, curve, houses, breakableTrees) {
       const center = box.getCenter(new THREE.Vector3());
       model.position.sub(center);
       const size = box.getSize(new THREE.Vector3()).length();
-      const scaleFactor = 10 / size;
+      const scaleFactor = 11 / size;
       model.scale.setScalar(scaleFactor);
-      model.rotation.y = Math.PI / 2;
+      model.rotation.y = Math.PI / -1.6;
 
-      const t = 0.6;
+      const t = 0.65;
       const roadPos = curve.getPoint(t);
       const tangent = curve.getTangent(t);
       const perp = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
-      const side = 1;
-      const distance = 18;
+      const side = 0.96;
+      const distance = -64;
       const pos = roadPos.clone().addScaledVector(perp, side * distance);
       pos.y = 0;
       model.position.copy(pos);
@@ -197,6 +199,45 @@ export function loadCustomModels(scene, curve, houses, breakableTrees) {
     undefined,
     (err) => console.error('Error loading pagoda:', err)
   );
+  // --- LOAD RX-7 ---
+loader.load(
+  'models/mazda_rx7_fd3s/scene.gltf',   // adjust the path/filename to your main .gltf
+  (gltf) => {
+    const carModel = gltf.scene;
+
+    // Optional: center and scale the model
+    const box = new THREE.Box3().setFromObject(carModel);
+    const center = box.getCenter(new THREE.Vector3());
+    carModel.position.sub(center);
+    const size = box.getSize(new THREE.Vector3()).length();
+    const scaleFactor = 5.5 / size;  // adjust to match your scene scale
+    carModel.scale.setScalar(scaleFactor);
+    // model.rotation.y = Math.PI / 1;
+
+    // Position it somewhere (e.g., near the road)
+    const t = 0.25;  // choose a spot along your main road
+    const roadPos = curve.getPoint(t);
+    const tangent = curve.getTangent(t);
+    const perp = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+    const side = 1;      // 1 = left, -1 = right (depending on perp direction)
+    const distance = 5; // how far from road
+    const pos = roadPos.clone().addScaledVector(perp, side * distance);
+    pos.y = 0;           // ground level
+    carModel.position.copy(pos);
+
+    // Optional: rotate the car to face the road or any direction
+    carModel.rotation.y = Math.PI / 0.75;
+
+    scene.add(carModel);
+
+    // If you want the car to be solid (collide with the player car), add to houses array
+    // houses.push(carModel);  // <-- uncomment if you want it as an obstacle
+
+    console.log('RX-7 loaded');
+  },
+  undefined,
+  (err) => console.error('Error loading RX-7:', err)
+);
 
   // (Optional) If you also want to load the lantern/street props, add another loader here.
   // loader.load('models/street-props.glb', ...)

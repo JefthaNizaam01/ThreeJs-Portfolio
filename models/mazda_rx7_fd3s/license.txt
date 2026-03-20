@@ -1,0 +1,11 @@
+Model Information:
+* title:	Mazda rx7 fd3s
+* source:	https://sketchfab.com/3d-models/mazda-rx7-fd3s-0ae5ce856a86426d83161ece8a0fd24e
+* author:	1_clicks_ (https://sketchfab.com/ZENTA-_-)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Mazda rx7 fd3s" (https://sketchfab.com/3d-models/mazda-rx7-fd3s-0ae5ce856a86426d83161ece8a0fd24e) by 1_clicks_ (https://sketchfab.com/ZENTA-_-) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
