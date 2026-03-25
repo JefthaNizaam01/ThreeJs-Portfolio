@@ -503,6 +503,157 @@
             scene.add(rightShoulder);
         }
 
+        // ========== SIDE ROADS ==========
+        // Helper to add a straight side road
+        function addSideRoad(startPos, direction, length, width = 3.5) {
+            const endPos = startPos.clone().add(direction.clone().multiplyScalar(length));
+            const dirVec = direction.clone().normalize();
+            const perp = new THREE.Vector3(-dirVec.z, 0, dirVec.x).normalize();
+            const center = startPos.clone().add(endPos).multiplyScalar(0.5);
+            
+            // Road tile (asphalt)
+            const tileGeo = new THREE.BoxGeometry(width, 0.15, length);
+            const tile = new THREE.Mesh(tileGeo, roadMaterial);
+            tile.position.copy(center);
+            tile.position.y = 0.08;
+            tile.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), dirVec);
+            tile.receiveShadow = true;
+            tile.castShadow = false;
+            scene.add(tile);
+            
+            // Dashed center stripe (exactly like the main road)
+            const dashLength = 0.8;
+            const gapLength = 1.0;
+            const dashCount = Math.floor(length / (dashLength + gapLength));
+            for (let j = 0; j < dashCount; j++) {
+                const tStart = j * (dashLength + gapLength) / length;
+                const tEnd = (j * (dashLength + gapLength) + dashLength) / length;
+                if (tEnd > 1) break;
+                const dashStart = startPos.clone().lerp(endPos, tStart);
+                const dashEnd = startPos.clone().lerp(endPos, tEnd);
+                const dashDir = new THREE.Vector3().subVectors(dashEnd, dashStart);
+                const dashLen = dashDir.length();
+                if (dashLen < 0.1) continue;
+                const dashCenter = new THREE.Vector3().addVectors(dashStart, dashEnd).multiplyScalar(0.5);
+                const dashGeo = new THREE.BoxGeometry(0.2, 0.16, dashLen);
+                const dash = new THREE.Mesh(dashGeo, stripeMaterial);
+                dash.position.copy(dashCenter);
+                dash.position.y = 0.17;
+                dash.quaternion.copy(tile.quaternion);
+                scene.add(dash);
+            }
+            
+            // Shoulders (gray, same as main road)
+            const leftShoulderGeo = new THREE.BoxGeometry(0.3, 0.1, length * 0.9);
+            const leftShoulder = new THREE.Mesh(leftShoulderGeo, shoulderMaterial);
+            leftShoulder.position.copy(center);
+            leftShoulder.position.y = 0.12;
+            leftShoulder.quaternion.copy(tile.quaternion);
+            leftShoulder.position.addScaledVector(perp, width/2 - 0.3);
+            scene.add(leftShoulder);
+            
+            const rightShoulder = leftShoulder.clone();
+            rightShoulder.position.addScaledVector(perp, -width + 0.6);
+            scene.add(rightShoulder);
+        }
+
+        // Helper to add a curved side road (uses a CatmullRomCurve3)
+        function addCurvedRoad(startPos, initialDir, controlOffsets, width = 3.5) {
+            // Build points relative to start position (in world coordinates)
+            const points = [startPos];
+            let currentPos = startPos.clone();
+            for (let i = 0; i < controlOffsets.length; i++) {
+                const offset = controlOffsets[i];
+                const nextPos = currentPos.clone().add(new THREE.Vector3(offset[0], 0, offset[1]));
+                points.push(nextPos);
+                currentPos = nextPos;
+            }
+            const curve = new THREE.CatmullRomCurve3(points);
+            const totalLength = curve.getLength();
+            const segmentLength = 0.8; // small segment for smooth curve
+            const numSegments = Math.floor(totalLength / segmentLength);
+            
+            for (let i = 0; i < numSegments; i++) {
+                const t1 = i / numSegments;
+                const t2 = (i + 1) / numSegments;
+                const p1 = curve.getPoint(t1);
+                const p2 = curve.getPoint(t2);
+                const dir = new THREE.Vector3().subVectors(p2, p1);
+                const len = dir.length();
+                if (len < 0.1) continue;
+                const center = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
+                const tileGeo = new THREE.BoxGeometry(width, 0.15, len);
+                const tile = new THREE.Mesh(tileGeo, roadMaterial);
+                tile.position.copy(center);
+                tile.position.y = 0.08;
+                tile.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), dir.clone().normalize());
+                tile.receiveShadow = true;
+                tile.castShadow = false;
+                scene.add(tile);
+                
+                // Dashed center stripe
+                const dashLength = 0.8;
+                const gapLength = 1.0;
+                const dashCount = Math.floor(len / (dashLength + gapLength));
+                for (let j = 0; j < dashCount; j++) {
+                    const tStart = j * (dashLength + gapLength) / len;
+                    const tEnd = (j * (dashLength + gapLength) + dashLength) / len;
+                    if (tEnd > 1) break;
+                    const dashStart = p1.clone().lerp(p2, tStart);
+                    const dashEnd = p1.clone().lerp(p2, tEnd);
+                    const dashLen = dashEnd.clone().sub(dashStart).length();
+                    const dashCenter = new THREE.Vector3().addVectors(dashStart, dashEnd).multiplyScalar(0.5);
+                    const dashGeo = new THREE.BoxGeometry(0.2, 0.16, dashLen);
+                    const dash = new THREE.Mesh(dashGeo, stripeMaterial);
+                    dash.position.copy(dashCenter);
+                    dash.position.y = 0.17;
+                    dash.quaternion.copy(tile.quaternion);
+                    scene.add(dash);
+                }
+                
+                // Shoulders
+                const perp = new THREE.Vector3(-dir.z, 0, dir.x).normalize();
+                const leftShoulderGeo = new THREE.BoxGeometry(0.3, 0.1, len * 0.9);
+                const leftShoulder = new THREE.Mesh(leftShoulderGeo, shoulderMaterial);
+                leftShoulder.position.copy(center);
+                leftShoulder.position.y = 0.12;
+                leftShoulder.quaternion.copy(tile.quaternion);
+                leftShoulder.position.addScaledVector(perp, width/2 - 0.3);
+                scene.add(leftShoulder);
+                
+                const rightShoulder = leftShoulder.clone();
+                rightShoulder.position.addScaledVector(perp, -width + 0.6);
+                scene.add(rightShoulder);
+            }
+        }
+
+        const mainRoadHalfWidth = roadWidth / 2;
+        const gap = 0.2;
+
+        // ----- CURVED SIDE ROAD at t = 0.38 -----
+        const tCurve = 0.38;
+        const sideValue = 0.9; // right side
+        const posOnCurve = curve.getPoint(tCurve);
+        const tangent = curve.getTangent(tCurve);
+        const perp = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+        const startOffset = mainRoadHalfWidth + gap;
+        const startPos = posOnCurve.clone().addScaledVector(perp, sideValue * startOffset);
+        // Direction away from road: same as perp direction (right side)
+        const initialDir = perp.clone().multiplyScalar(sideValue);
+        // Define curve control points as [dx, dz] offsets in world coordinates
+        // This creates a gentle S‑shaped curve: go forward 5, then turn left (negative z) and continue.
+        const controlOffsets = [
+            [5, 0],      // straight 5 units
+            [8, -4],     // curve left
+            [12, -6]     // continue curve
+        ];
+        addCurvedRoad(startPos, initialDir, controlOffsets, 3.5);
+
+        // Optional: add more straight side roads here if desired
+        // const sideRoads = [ ... ]; // uncomment and fill
+        // sideRoads.forEach(road => { ... });
+        // ==================================
+
         // --- BREAKABLE TREES ---
         const breakableTrees = [];
         let brokenTreeCount = 0;
@@ -564,32 +715,6 @@
             group.position.copy(pos);
             return group;
         }
-
-        // for (let i = 0; i < roadPositions.length; i += 2) {
-        //     const rp = roadPositions[i];
-        //     if (!rp) continue;
-        //     const perp = new THREE.Vector3(-rp.dir.z, 0, rp.dir.x).normalize();
-        //     for (let side = -1; side <= 1; side += 2) {
-        //         if (Math.random() > 0.4) {
-        //             const treePos = rp.pos.clone().addScaledVector(perp, side * (4 + Math.random()*5));
-        //             treePos.y = 0;
-        //             const tree = createTree(treePos);
-        //             scene.add(tree);
-        //             breakableTrees.push(tree);
-        //         }
-        //     }
-        // }
-        // for (let i = 0; i < 30; i++) {
-        //     const angle = Math.random() * Math.PI * 2;
-        //     const radius = 20 + Math.random() * 40;
-        //     const x = Math.cos(angle) * radius;
-        //     const z = Math.sin(angle) * radius;
-        //     if (Math.abs(x) < 50 && Math.abs(z) < 50) {
-        //         const tree = createTree(new THREE.Vector3(x, 0, z));
-        //         scene.add(tree);
-        //         breakableTrees.push(tree);
-        //     }
-        // }
 
         // --- BREAKABLE SIGNS ---
         const breakableSigns = [];
@@ -887,7 +1012,7 @@
             }
         }
 
-        // --- ANIMATION LOOP ---
+        // --- ANIMATION LOOP (with petal animation inside) ---
         const clock = new THREE.Clock();
 
         function animate() {
@@ -901,6 +1026,41 @@
             }
 
             controls.update();
+
+            // --- Animate falling petals for the sakura tree ---
+            if (breakableTrees && breakableTrees.length > 0) {
+                breakableTrees.forEach(tree => {
+                    if (tree.userData.petals && tree.userData.petalVelocities) {
+                        const petals = tree.userData.petals;
+                        const velocities = tree.userData.petalVelocities;
+                        const positions = petals.geometry.attributes.position.array;
+                        for (let i = 0; i < velocities.length; i++) {
+                            // Update position
+                            let x = positions[i*3] + velocities[i].vx * delta;
+                            let y = positions[i*3+1] + velocities[i].vy * delta;
+                            let z = positions[i*3+2] + velocities[i].vz * delta;
+
+                            // Reset if below ground (y < 0)
+                            if (y < 0) {
+                                const radius = 2 + Math.random() * 4;
+                                const angle = Math.random() * Math.PI * 2;
+                                x = Math.cos(angle) * radius;
+                                z = Math.sin(angle) * radius;
+                                y = 5 + Math.random() * 3;
+                                // Reset horizontal drift
+                                velocities[i].vx = (Math.random() - 0.5) * 0.2;
+                                velocities[i].vz = (Math.random() - 0.5) * 0.2;
+                            }
+
+                            positions[i*3] = x;
+                            positions[i*3+1] = y;
+                            positions[i*3+2] = z;
+                        }
+                        petals.geometry.attributes.position.needsUpdate = true;
+                    }
+                });
+            }
+
             renderer.render(scene, camera);
             css2DRenderer.render(scene, camera);
         }
