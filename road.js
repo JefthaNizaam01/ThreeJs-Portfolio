@@ -17,12 +17,12 @@ export function createRoads(scene) {
     ];
 
     const curve = new THREE.CatmullRomCurve3(points);
-    
+
     const roadWidth = 4.2;
     const roadSegmentLength = 1.8;
     const totalCurveLength = curve.getLength();
     const numSegments = Math.floor(totalCurveLength / roadSegmentLength);
-    
+
     const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.9 });
     const orangeLineMaterial = new THREE.MeshStandardMaterial({ color: 0xffa500 });
     const whiteLineMaterial = new THREE.MeshStandardMaterial({ color: 0xdddddd });
@@ -39,20 +39,20 @@ export function createRoads(scene) {
         const center = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
         const tile = new THREE.Mesh(new THREE.BoxGeometry(roadWidth, 0.1, length + 0.05), roadMaterial);
         tile.position.copy(center); tile.position.y = 0.05;
-        tile.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), direction.clone().normalize());
-        tile.receiveShadow = true; 
+        tile.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction.clone().normalize());
+        tile.receiveShadow = true;
         scene.add(tile);
-        
+
         const centerLine = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, length), orangeLineMaterial);
         centerLine.position.copy(center); centerLine.position.y = 0.06;
         centerLine.quaternion.copy(tile.quaternion);
         scene.add(centerLine);
-        
+
         const perp = new THREE.Vector3(-direction.z, 0, direction.x).normalize();
         if (i % 3 < 2) {
             const leftLine = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.11, length), whiteLineMaterial);
             leftLine.position.copy(center); leftLine.position.y = 0.06;
-            leftLine.position.addScaledVector(perp, roadWidth/2 - 0.15);
+            leftLine.position.addScaledVector(perp, roadWidth / 2 - 0.15);
             leftLine.quaternion.copy(tile.quaternion);
             scene.add(leftLine);
             const rightLine = leftLine.clone();
@@ -62,7 +62,7 @@ export function createRoads(scene) {
 
         const curbLeft = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, length), shoulderMaterial);
         curbLeft.position.copy(center); curbLeft.position.y = 0.1;
-        curbLeft.position.addScaledVector(perp, roadWidth/2 + 0.2);
+        curbLeft.position.addScaledVector(perp, roadWidth / 2 + 0.2);
         curbLeft.quaternion.copy(tile.quaternion);
         scene.add(curbLeft);
         const curbRight = curbLeft.clone();
@@ -89,7 +89,7 @@ function addVendingMachine(scene, center, perp, roadWidth, quaternion, i) {
     light.position.set(0, 1.3, 0.36);
     vmGroup.add(light);
     vmGroup.position.copy(center);
-    vmGroup.position.addScaledVector(perp, roadWidth/2 + 0.8);
+    vmGroup.position.addScaledVector(perp, roadWidth / 2 + 0.8);
     vmGroup.quaternion.copy(quaternion);
     scene.add(vmGroup);
 }
@@ -110,7 +110,7 @@ function addSideRoads(scene, curve, roadWidth) {
     const eLoop = pE.clone().addScaledVector(perp2, mainRoadHalfWidth + gap);
     const c1 = sLoop.clone().addScaledVector(perp1, lDist), c2 = eLoop.clone().addScaledVector(perp2, lDist);
     const lPoints = [sLoop, sLoop.clone().addScaledVector(perp1, 4), c1, c2, eLoop.clone().addScaledVector(perp2, 4), eLoop];
-    const lCurve = new THREE.CatmullRomCurve3(lPoints, false, 'chordal'); 
+    const lCurve = new THREE.CatmullRomCurve3(lPoints, false, 'chordal');
     const lLen = lCurve.getLength(), lSegments = Math.floor(lLen / 0.8);
 
     for (let i = 0; i < lSegments; i++) {
@@ -121,7 +121,7 @@ function addSideRoads(scene, curve, roadWidth) {
         const center = pt1.clone().add(pt2).multiplyScalar(0.5);
         const tile = new THREE.Mesh(new THREE.BoxGeometry(lWidth, 0.1, len + 0.1), roadMaterial);
         tile.position.copy(center); tile.position.y = 0.05;
-        tile.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), dir.clone().normalize());
+        tile.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir.clone().normalize());
         scene.add(tile);
         if (i % 2 === 0) {
             const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, len * 0.8), orangeLineMaterial);
@@ -132,7 +132,7 @@ function addSideRoads(scene, curve, roadWidth) {
         const p = new THREE.Vector3(-dir.z, 0, dir.x).normalize();
         const curb = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.25, len), shoulderMaterial);
         curb.position.copy(center); curb.position.y = 0.1;
-        curb.position.addScaledVector(p, lWidth/2 + 0.2);
+        curb.position.addScaledVector(p, lWidth / 2 + 0.2);
         curb.quaternion.copy(tile.quaternion);
         scene.add(curb);
         const curb2 = curb.clone();

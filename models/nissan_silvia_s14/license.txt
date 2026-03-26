@@ -1,0 +1,11 @@
+Model Information:
+* title:	Nissan Silvia S14
+* source:	https://sketchfab.com/3d-models/nissan-silvia-s14-f1a862c07b9048f0bcee641d13643bec
+* author:	Garage K (https://sketchfab.com/Streetsraker)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Nissan Silvia S14" (https://sketchfab.com/3d-models/nissan-silvia-s14-f1a862c07b9048f0bcee641d13643bec) by Garage K (https://sketchfab.com/Streetsraker) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
