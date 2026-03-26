@@ -1,10 +1,11 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { assetLoader, loadingManager } from './assetLoader.js';
 import { setupScene } from './sceneSetup.js';
 import { createRoads } from './road.js';
 import { setupEnvironment } from './environment.js';
 import { setupCarControls, handleCollisions, updateEngineSound } from './carController.js';
-import { loadCustomModels } from './loadModels.js';
+import { loadBuildings } from './loadBuildings.js';
+import { loadDecorativeCars } from './loadDecorativeCars.js';
 import { loadEngineSounds } from './audioLoader.js';
 
 // --- INITIALIZE ---
@@ -30,24 +31,37 @@ const musicBtn = document.getElementById('music-toggle');
 const scoreElement = document.getElementById('break-score');
 
 // --- HIDE INTRO ---
-setTimeout(() => {
+function hideIntro() {
     if (introOverlay.style.opacity !== '0') {
         introOverlay.style.opacity = '0';
         setTimeout(() => introOverlay.style.display = 'none', 1800);
     }
-}, 4000);
+}
+
+// Automatically hide after all assets load AND a bit of extra time for smoothness
+loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+    const progress = Math.round((itemsLoaded / itemsTotal) * 100);
+    const footer = document.getElementById('intro-footer');
+    if (footer) footer.textContent = `loading assets: ${progress}%`;
+};
+
+loadingManager.onLoad = () => {
+    console.log('Main: All assets loaded, ready to go.');
+    const footer = document.getElementById('intro-footer');
+    if (footer) footer.textContent = 'press any key to drive';
+    
+    // Optional: Auto-hide after 1s if they haven't pressed anything
+    setTimeout(() => {
+        if (!userInteracted) {
+           // We keep it until keydown as per user's design, 
+           // but we ensure the status is clear.
+        }
+    }, 1000);
+};
 
 window.addEventListener('keydown', () => {
-    if (introOverlay.style.opacity !== '0') {
-        introOverlay.style.opacity = '0';
-        setTimeout(() => introOverlay.style.display = 'none', 1800);
-    }
-    if (!musicPlaying && introOverlay.style.opacity === '0') {
-        music.play().catch(e => {});
-        userInteracted = true;
-        musicPlaying = true;
-        musicBtn.textContent = '🎵 indie (on)';
-    }
+    hideIntro();
+    userInteracted = true;
 }, { once: true });
 
 // --- MUSIC ---
@@ -69,13 +83,13 @@ musicBtn.addEventListener('click', () => {
 // --- GENERATE WORLD ---
 const curve = createRoads(scene);
 const { ball } = setupEnvironment(scene, curve, breakableTrees, breakableSigns);
-loadCustomModels(scene, curve, houses, breakableTrees);
+loadBuildings(scene, curve, houses, breakableTrees);
+loadDecorativeCars(scene, curve);
 
 // --- CAR SETUP ---
 const input = setupCarControls();
-const loader = new GLTFLoader();
 
-loader.load('models/1985_toyota_sprinter_trueno_ae86.glb',
+assetLoader.load('models/1985_toyota_sprinter_trueno_ae86.glb',
     (gltf) => {
         const carModel = gltf.scene;
         const box = new THREE.Box3().setFromObject(carModel);
@@ -91,7 +105,7 @@ loader.load('models/1985_toyota_sprinter_trueno_ae86.glb',
         carGroup.position.copy(startPos);
         carGroup.position.y = 0.2;
         const startTangent = curve.getTangent(0.02);
-        carGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), startTangent);
+        carGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), startTangent);
         scene.add(carGroup);
 
         // Sounds
@@ -141,7 +155,7 @@ function updateCar(delta) {
 
     if (input.throttle) carSpeed += acceleration * delta;
     if (input.brake) carSpeed -= acceleration * delta;
-    carSpeed = Math.max(-maxSpeed/2, Math.min(maxSpeed, carSpeed));
+    carSpeed = Math.max(-maxSpeed / 2, Math.min(maxSpeed, carSpeed));
 
     if (!input.throttle && !input.brake) {
         if (carSpeed > 0) carSpeed = Math.max(0, carSpeed - friction * delta);
@@ -151,7 +165,7 @@ function updateCar(delta) {
     if (input.left) carGroup.rotation.y += turnSpeed * delta * (carSpeed / maxSpeed);
     if (input.right) carGroup.rotation.y -= turnSpeed * delta * (carSpeed / maxSpeed);
 
-    const forward = new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion);
+    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(carGroup.quaternion);
     carGroup.position.add(forward.multiplyScalar(carSpeed * delta));
     carGroup.position.x = Math.max(-100, Math.min(120, carGroup.position.x));
     carGroup.position.z = Math.max(-100, Math.min(120, carGroup.position.z));
@@ -189,15 +203,15 @@ function animate() {
                 const velocities = tree.userData.petalVelocities;
                 const positions = petals.geometry.attributes.position.array;
                 for (let i = 0; i < velocities.length; i++) {
-                    positions[i*3] += velocities[i].vx * delta;
-                    positions[i*3+1] += velocities[i].vy * delta;
-                    positions[i*3+2] += velocities[i].vz * delta;
-                    if (positions[i*3+1] < 0) {
+                    positions[i * 3] += velocities[i].vx * delta;
+                    positions[i * 3 + 1] += velocities[i].vy * delta;
+                    positions[i * 3 + 2] += velocities[i].vz * delta;
+                    if (positions[i * 3 + 1] < 0) {
                         const radius = 2 + Math.random() * 4;
                         const angle = Math.random() * Math.PI * 2;
-                        positions[i*3] = Math.cos(angle) * radius;
-                        positions[i*3+1] = 5 + Math.random() * 3;
-                        positions[i*3+2] = Math.sin(angle) * radius;
+                        positions[i * 3] = Math.cos(angle) * radius;
+                        positions[i * 3 + 1] = 5 + Math.random() * 3;
+                        positions[i * 3 + 2] = Math.sin(angle) * radius;
                     }
                 }
                 petals.geometry.attributes.position.needsUpdate = true;

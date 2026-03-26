@@ -1,0 +1,11 @@
+Model Information:
+* title:	2014 Toyota GT86 ZN6
+* source:	https://sketchfab.com/3d-models/2014-toyota-gt86-zn6-e595b4a9f4c847dfb9d2966e200b3a6a
+* author:	SIU Car Garage (https://sketchfab.com/Game_mode)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "2014 Toyota GT86 ZN6" (https://sketchfab.com/3d-models/2014-toyota-gt86-zn6-e595b4a9f4c847dfb9d2966e200b3a6a) by SIU Car Garage (https://sketchfab.com/Game_mode) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
